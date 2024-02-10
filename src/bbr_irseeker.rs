@@ -6,10 +6,10 @@ struct Irseeker{
 }
 impl Irseeker{
     /// creates a new Irseeker object.
-    async unsafe fn new() -> Self{
-        let mut ir_i2c = i2c::I2c::new();
+    async unsafe fn new() -> Result<Self>{
+        let mut ir_i2c = i2c::I2c::new()?;
         ir_i2c.set_slave_address(0x8);
-        Self {ir: ir_i2c}
+        Ok(Self {ir: ir_i2c})
     }
     async unsafe fn get_direction(&mut self) -> u8{
         let mut buf: [u8; 2] = [0,0];
