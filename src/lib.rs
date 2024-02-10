@@ -3,4 +3,4 @@ pub use rppal;
 pub use hc_sr04;
 
 
-mod bbr_irseeker;
+pub mod bbr_irseeker;
