@@ -1,7 +1,7 @@
 use rppal::i2c::{self, *};
 
 
-struct Irseeker{
+pub struct Irseeker{
     ir: I2c,
 }
 impl Irseeker{
