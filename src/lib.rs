@@ -2,4 +2,8 @@ pub use rpi_build_hat_serial;
 pub use rppal;
 
 pub mod bbr_irseeker;
-pub mod hc_sr04;
+
+
+pub mod mpu6050;
+mod bits;
+pub mod device;
