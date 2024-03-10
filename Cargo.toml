@@ -9,3 +9,5 @@ edition = "2021"
 rpi_build_hat_serial = { git = "https://github.com/rshs-robotics-club/rpi_build_hat_serial.git", branch = "master" }
 rppal = "0.17.1"
 hc-sr04 = "0.1.1"
+nalgebra = "0.32.4"
+libm = "0.2.8"
