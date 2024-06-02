@@ -3,10 +3,10 @@ pub use rppal;
 
 pub mod bbr_irseeker;
 
-
-pub use nalgebra;
 pub use libm;
+pub use nalgebra;
 
-pub mod mpu6050;
 mod bits;
 pub mod device;
+pub mod mpu6050;
+mod omni; // omni library is not done
