@@ -4,7 +4,6 @@ use nalgebra::ComplexField;
 use rpi_build_hat_serial::motor_wrap::{Direction, Motor};
 use rpi_build_hat_serial::raw::firmware::Port;
 use std::error::Error;
-use super::mpu6050::Mpu6050;
 pub struct Omni {
     motor_a: Motor,
     motor_b: Motor,
