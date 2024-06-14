@@ -380,6 +380,23 @@ impl Mpu6050 {
         // According to revision 4.2
         Ok((raw_temp / TEMP_SENSITIVITY) + TEMP_OFFSET)
     }
+    pub fn get_offsets(&mut self,  gx_off: &mut f32, gy_off: &mut f32, gz_off: &mut f32) -> Result<(), Box<dyn Error>> {
+        let mut gyro_off: [f32; 3];
+        *gx_off = 0.0;
+        *gy_off = 0.0;
+        *gz_off = 0.0;
+        for i in 0..10000{
+            gyro_off = self.get_gyro().unwrap().into();
+            *gx_off = *gx_off + gyro_off[0];
+            *gy_off = *gy_off + gyro_off[1];
+            *gz_off = *gz_off + gyro_off[2];
+
+        }
+        *gx_off = *gx_off / 10000.0;
+        *gy_off = *gy_off / 10000.0;
+        *gz_off = *gz_off / 10000.0;
+        Ok(())
+    }
 
     /// updates the values read from mpu6050.
     /// this includes: 
