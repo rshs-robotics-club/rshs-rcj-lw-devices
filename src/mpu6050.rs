@@ -408,9 +408,9 @@ impl Mpu6050 {
         for i in 0..3{
             g_off[i] /= 10000.0;
         }
-        self.x_deg_off = g_off[0];
-        self.y_deg_off = g_off[1];
-        self.z_deg_off = g_off[2];
+        self.x_off = g_off[0];
+        self.y_off = g_off[1];
+        self.z_off = g_off[2];
         Ok(())
     }
 
