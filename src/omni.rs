@@ -86,8 +86,8 @@ impl Omni {
     /// * x_abs: the x-value relative to the court
     /// * y_abs: the y-value relative to the court
     /// * face_angle: the angle in which the robot should face
-    pub async fn move_xy(&mut self, robot_speed: f32, facing: f32, code_speed: f32, x_1: f32, y_1: f32, face_angle: f32) -> Result<(), Box<dyn Error>> {
-        let rotated_point = Self::find_rotated_point(x_1, y_1, face_angle).unwrap();
+    pub async fn move_xy(&mut self, robot_speed: f32, facing: f32, x_1: f32, y_1: f32, face_angle: f32) -> Result<(), Box<dyn Error>> {
+        let rotated_point = Self::find_rotated_point(x_1, y_1, facing).unwrap();
         let (x, y) = (rotated_point[0], rotated_point[1]);
         let mut a: f32 = x+y;
         let mut b: f32 = x-y;
@@ -105,12 +105,12 @@ impl Omni {
 
 
     /// moves the robot with angle starting from the vector [0, 1]
-    pub async fn move_angle(&mut self, robot_speed: f32, facing: f32, code_speed:f32, move_angle: f32, face_angle: f32) -> Result<(), Box<dyn Error>> {
+    pub async fn move_angle(&mut self, robot_speed: f32, facing: f32, move_angle: f32, face_angle: f32) -> Result<(), Box<dyn Error>> {
         let dir_x = Self::find_rotated_point(0.0, 1.0, move_angle).unwrap()[0];
         let dir_y = Self::find_rotated_point(0.0, 1.0, move_angle).unwrap()[1];
         let move_x = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[0];
         let move_y = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[1];
-        self.move_xy(robot_speed, facing, code_speed, move_x, move_y, face_angle).await;
+        self.move_xy(robot_speed, facing, move_x, move_y, face_angle).await;
         Ok(())
     }
 
