@@ -34,6 +34,13 @@ impl From<rppal::i2c::Error> for Mpu6050Error {
     }
 }
 
+/// the default is AntiClockwise
+/// 
+/// the lego gyro is Clockwise
+pub enum Direction {
+    Clockwise,
+    Anticlockwise,
+}
 pub struct Mpu6050 {
     i2c: rppal::i2c::I2c,
     acc_sensitivity: f32,
@@ -416,21 +423,26 @@ impl Mpu6050 {
 
     /// updates the values read from mpu6050.
     /// this includes: 
-    /// *pitch, yaw, roll (degrees)
-    /// *x, y, z accelerometer (g)
-    /// temperature (degrees Celsius)
-    pub fn update_values(&mut self, code_speed: f32) -> Result<(), Box<dyn Error>> {
+    /// 
+    /// - pitch, yaw, roll (degrees)
+    /// 
+    /// - x, y, z accelerometer (g)
+    /// 
+    /// - temperature (degrees Celsius)
+    /// 
+    /// - direction (Direction)
+    pub fn update_values(&mut self, code_speed: f32, direction: Direction) -> Result<(), Box<dyn Error>> {
         // degrees
         let gyro_value = self.get_gyro().unwrap(); // getting the raw values
         let mut loop_angle: [f32; 3] = [0.0; 3];
         let mut offsets = [self.x_off, self.y_off, self.z_off];
         for i in 0..3 {
             loop_angle[i] = (gyro_value[i] - offsets[i]) * 180.0/PI * code_speed; // degrees went in the loop
+            if (direction == Direction::Clockwise) {loop_angle *= -1}; // if the direction is set to Clockwise, then it needs to times negative 1
         }
-        self.x_deg += if (loop_angle[0].abs() >= 0.01) {loop_angle[0]} else {0.0};
+        self.x_deg += if (loop_angle[0].abs() >= 0.01) {loop_angle[0]} else {0.0}; // only add when its a significant value, otherwise ignore.
         self.y_deg += if (loop_angle[1].abs() >= 0.01) {loop_angle[1]} else {0.0};
         self.z_deg += if (loop_angle[2].abs() >= 0.01) {loop_angle[2]} else {0.0};
-
 
         // accel
         // note that this is the raw values (since we are not planning to use it, I am not going to work on it much)
@@ -447,6 +459,7 @@ impl Mpu6050 {
         Ok(())
     }
 
+    /// resetting the values
     pub fn set_zero(&mut self) -> Result<(), Box<dyn Error>> { // resetting the values
         self.x_deg = 0.0;
         self.y_deg = 0.0;
