@@ -41,6 +41,9 @@ pub struct Mpu6050 {
     pub x_deg: f32,
     pub y_deg: f32,
     pub z_deg: f32,
+    pub x_off: f32,
+    pub y_off: f32,
+    pub z_off: f32,
     pub x_acc: f32,
     pub y_acc: f32,
     pub z_acc: f32,
@@ -57,6 +60,9 @@ impl Mpu6050 {
             x_deg: 0.0,
             y_deg: 0.0,
             z_deg: 0.0,
+            x_off: 0.0,
+            y_off: 0.0,
+            z_off: 0.0,
             x_acc: 0.0,
             y_acc: 0.0,
             z_acc: 0.0,
@@ -73,6 +79,9 @@ impl Mpu6050 {
             x_deg: 0.0,
             y_deg: 0.0,
             z_deg: 0.0,
+            x_off: 0.0,
+            y_off: 0.0,
+            z_off: 0.0,
             x_acc: 0.0,
             y_acc: 0.0,
             z_acc: 0.0,
@@ -90,6 +99,9 @@ impl Mpu6050 {
             x_deg: 0.0,
             y_deg: 0.0,
             z_deg: 0.0,
+            x_off: 0.0,
+            y_off: 0.0,
+            z_off: 0.0,
             x_acc: 0.0,
             y_acc: 0.0,
             z_acc: 0.0,
@@ -111,6 +123,9 @@ impl Mpu6050 {
             x_deg: 0.0,
             y_deg: 0.0,
             z_deg: 0.0,
+            x_off: 0.0,
+            y_off: 0.0,
+            z_off: 0.0,
             x_acc: 0.0,
             y_acc: 0.0,
             z_acc: 0.0,
@@ -380,6 +395,24 @@ impl Mpu6050 {
         // According to revision 4.2
         Ok((raw_temp / TEMP_SENSITIVITY) + TEMP_OFFSET)
     }
+    pub fn get_gyro_offsets(&mut self,  g_off: &mut [f32; 3]) -> Result<(), Box<dyn Error>> {
+        let mut gyro_off: [f32; 3];
+        *g_off = [0.0, 0.0, 0.0];
+        for i in 0..10000{
+            gyro_off = self.get_gyro().unwrap().into();
+            for j in 0..3{
+                g_off[j] += gyro_off[j];
+            }
+
+        }
+        for i in 0..3{
+            g_off[i] /= 10000.0;
+        }
+        self.x_off = g_off[0];
+        self.y_off = g_off[1];
+        self.z_off = g_off[2];
+        Ok(())
+    }
 
     /// updates the values read from mpu6050.
     /// this includes: 
@@ -390,8 +423,9 @@ impl Mpu6050 {
         // degrees
         let gyro_value = self.get_gyro().unwrap(); // getting the raw values
         let mut loop_angle: [f32; 3] = [0.0; 3];
+        let mut offsets = [self.x_off, self.y_off, self.z_off];
         for i in 0..3 {
-            loop_angle[i] = gyro_value[i] * 180.0/PI * code_speed; // degrees went in the loop
+            loop_angle[i] = (gyro_value[i] - offsets[i]) * 180.0/PI * code_speed; // degrees went in the loop
         }
         self.x_deg += if (loop_angle[0].abs() >= 0.01) {loop_angle[0]} else {0.0};
         self.y_deg += if (loop_angle[1].abs() >= 0.01) {loop_angle[1]} else {0.0};
