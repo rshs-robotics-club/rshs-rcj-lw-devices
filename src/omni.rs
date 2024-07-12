@@ -93,7 +93,7 @@ impl Omni {
         let mut b: f32 = x-y;
         let mut c: f32 = -x-y;
         let mut d: f32 = -x+y;
-        let rotation_factor = (facing+face_angle) * 0.01;
+        let rotation_factor = (facing+face_angle) * rotation_multiplier;
         a -= rotation_factor;
         b -= rotation_factor;
         c -= rotation_factor;
