@@ -33,7 +33,7 @@ impl From<rppal::i2c::Error> for Mpu6050Error {
         Mpu6050Error::I2cError(error)
     }
 }
-
+#[derive(PartialEq)]
 /// the default is AntiClockwise
 /// 
 /// the lego gyro is Clockwise
@@ -438,7 +438,7 @@ impl Mpu6050 {
         let mut offsets = [self.x_off, self.y_off, self.z_off];
         for i in 0..3 {
             loop_angle[i] = (gyro_value[i] - offsets[i]) * 180.0/PI * code_speed; // degrees went in the loop
-            if (direction == Direction::Clockwise) {loop_angle *= -1}; // if the direction is set to Clockwise, then it needs to times negative 1
+            if (direction == Direction::Clockwise) {loop_angle[i] *= -1.0}; // if the direction is set to Clockwise, then it needs to times negative 1
         }
         self.x_deg += if (loop_angle[0].abs() >= 0.01) {loop_angle[0]} else {0.0}; // only add when its a significant value, otherwise ignore.
         self.y_deg += if (loop_angle[1].abs() >= 0.01) {loop_angle[1]} else {0.0};
