@@ -402,10 +402,15 @@ impl Mpu6050 {
         // According to revision 4.2
         Ok((raw_temp / TEMP_SENSITIVITY) + TEMP_OFFSET)
     }
-    pub fn get_gyro_offsets(&mut self,  g_off: &mut [f32; 3], loops: u16) -> Result<(), Box<dyn Error>> {
+    pub fn get_gyro_offsets(&mut self,  g_off: &mut [f32; 3], loops: Option<u16>) -> Result<(), Box<dyn Error>> {
+        let mut num = 0;
+        if loops == None{
+            num = 10000;
+        }
+        else {num = loops.unwrap()};
         let mut gyro_off: [f32; 3];
         *g_off = [0.0, 0.0, 0.0];
-        for i in 0..loops{
+        for i in 0..num{
             gyro_off = self.get_gyro().unwrap().into();
             for j in 0..3{
                 g_off[j] += gyro_off[j];
@@ -413,7 +418,7 @@ impl Mpu6050 {
 
         }
         for i in 0..3{
-            g_off[i] /= loops as f32;
+            g_off[i] /= num as f32;
         }
         self.x_off = g_off[0];
         self.y_off = g_off[1];
