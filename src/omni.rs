@@ -1,6 +1,4 @@
 use std::f32::consts::PI;
-
-use nalgebra::ComplexField;
 use rpi_build_hat_serial::motor_wrap::{Direction, Motor};
 use rpi_build_hat_serial::raw::firmware::Port;
 use std::error::Error;
@@ -173,7 +171,7 @@ impl Omni {
         let dir_y = Self::find_rotated_point(0.0, 1.0, move_angle).unwrap()[1];
         let move_x = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[0];
         let move_y = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[1];
-        self.move_xy(robot_speed, facing, move_x, move_y, face_angle, rotation_multiplier).await;
+        let _ = self.move_xy(robot_speed, facing, move_x, move_y, face_angle, rotation_multiplier).await;
         Ok(())
     }
 
@@ -183,7 +181,7 @@ impl Omni {
         let dir_y = Self::find_rotated_point(0.0, 1.0, move_angle).unwrap()[1];
         let move_x = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[0];
         let move_y = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[1];
-        self.move_xy_pwm(robot_speed, facing, move_x, move_y, face_angle, rotation_multiplier).await;
+        let _ = self.move_xy_pwm(robot_speed, facing, move_x, move_y, face_angle, rotation_multiplier).await;
         Ok(())
     }
 
@@ -213,7 +211,7 @@ impl Omni {
         let current_max: f32 = values
             .iter()
             .fold(f32::MIN, |a, b| if a > *b { a } else { *b });
-        let multiplier: f32 = (aim / current_max);
+        let multiplier: f32 = aim / current_max;
         *a_speed *= multiplier;
         *b_speed *= multiplier;
         *c_speed *= multiplier;
