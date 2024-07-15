@@ -68,7 +68,7 @@ impl Omni {
     }
 
     /// runs motors with raw values ()
-    pub async  fn run_raw_pwm(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32) {
+    pub async fn run_raw_pwm(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32) {
         self.motor_a.run_pwm(a_speed).await;
         self.motor_b.run_pwm(b_speed).await;
         self.motor_c.run_pwm(c_speed).await;
@@ -184,6 +184,12 @@ impl Omni {
         let move_x = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[0];
         let move_y = Self::find_rotated_point(dir_x, dir_y, facing).unwrap()[1];
         self.move_xy_pwm(robot_speed, facing, move_x, move_y, face_angle, rotation_multiplier).await;
+        Ok(())
+    }
+
+    /// stops the motors
+    pub async fn stop(&mut self) -> Result<(), Box<dyn Error>> {
+        self.run_raw_pwm(0.0, 0.0, 0.0, 0.0).await;
         Ok(())
     }
     
