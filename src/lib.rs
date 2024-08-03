@@ -9,5 +9,5 @@ pub use nalgebra;
 mod bits;
 pub mod device;
 pub mod mpu6050;
-mod omni; // omni library is not done
 pub mod compass;
+pub mod omni;
