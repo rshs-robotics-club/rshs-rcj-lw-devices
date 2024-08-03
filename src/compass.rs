@@ -5,7 +5,7 @@ use rppal::*;
 use std::error::Error;
 use lsm303dlhc::{self, Lsm303dlhc};
 
-struct Compass{
+pub struct Compass{
     lsm303dlhc: Lsm303dlhc<I2c>,
     drdy_pin: InputPin,
 }
