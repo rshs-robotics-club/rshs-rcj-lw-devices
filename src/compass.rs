@@ -2,7 +2,7 @@ use gpio::{Gpio, InputPin};
 use i2c::I2c;
 // this is a wrapper for the lsm303dlhc magnetometer.
 use rppal::*;
-use std::{error::Error, result};
+use std::error::Error;
 use lsm303dlhc::{self, Lsm303dlhc};
 
 pub struct Compass{
@@ -23,12 +23,20 @@ impl Compass {
         let v = self.lsm303dlhc.mag().unwrap();
         Ok(f32::atan2(v.z as f32, v.x as f32).to_degrees())
     }
-    pub fn get_yaw_abs_radian(&mut self) -> Result<f32, Box<dyn Error>> {
+    pub fn get_yaw_abs_rads(&mut self) -> Result<f32, Box<dyn Error>> {
         let v = self.lsm303dlhc.mag().unwrap();
         Ok(f32::atan2(v.z as f32, v.x as f32))
     }
     pub fn set_zero(&mut self) -> Result<(), Box<dyn Error>> {
         self.abs_yaw = self.get_yaw_abs().unwrap();
         Ok(())
+    }
+    pub fn get_yaw_rel(&mut self) -> Result<f32, Box<dyn Error>> {
+        let abs = self.get_yaw_abs().unwrap();
+        Ok(abs - self.abs_yaw)
+    }
+    pub fn get_yaw_rel_rads(&mut self) -> Result<f32, Box<dyn Error>> {
+        let abs = self.get_yaw_abs_rads().unwrap();
+        Ok(abs - self.abs_yaw.to_radians())
     }
 }
