@@ -6,7 +6,7 @@ use std::error::Error;
 use lsm303dlhc::{self, Lsm303dlhc};
 
 pub struct Compass{
-    lsm303dlhc: Lsm303dlhc<I2c>,
+    pub lsm303dlhc: Lsm303dlhc<I2c>,
     drdy_pin: InputPin,
     abs_yaw: f32,
 }
