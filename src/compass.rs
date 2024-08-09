@@ -65,7 +65,8 @@ impl Compass {
     /// 
     /// you would need to use the ```set_zero()``` function before this.
     pub fn get_yaw_rel(&mut self) -> Result<f32, Box<dyn Error>> {
-        Ok(self.get_yaw_abs().unwrap() - self.start_angle)
+        let ans = (((self.get_yaw_abs().unwrap() - self.start_angle) + 180.0) % 360.0) - 180.0;
+        Ok(ans)
     }
 
     /// gets the offset and scale for the x and z axis.
