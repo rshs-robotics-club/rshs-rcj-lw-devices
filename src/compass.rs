@@ -5,6 +5,18 @@ use rppal::*;
 use std::{error::Error, time::{Duration, Instant}};
 use lsm303dlhc::{self, Lsm303dlhc};
 
+/// instructions:
+/// 
+/// call the funcitons in this order to set up the sensor.
+/// 
+/// ```new()``` 
+/// 
+/// ```get_offsets()```
+/// 
+/// ```set_zero()```
+/// 
+/// after that, use ```ready()``` to check if the sensor is ready to output values
+/// and use ```get_raw_rel()``` to get the angle of the sensor 
 pub struct Compass{
     pub lsm303dlhc: Lsm303dlhc<I2c>,
     pub drdy_pin: InputPin,
@@ -14,6 +26,8 @@ pub struct Compass{
     pub z_offset: f32,
     pub z_scale: f32,
 }
+
+
 impl Compass {
     pub fn new(i2c: I2c, ready_pin: u8) -> Result<Self, Box<dyn Error>> {
         let lsm = Lsm303dlhc::new(i2c).unwrap();
@@ -48,11 +62,17 @@ impl Compass {
     }
 
     /// gets the angle relative to the start_angle
+    /// 
+    /// you would need to use the ```set_zero()``` function before this.
     pub fn get_yaw_rel(&mut self) -> Result<f32, Box<dyn Error>> {
         Ok(self.get_yaw_abs().unwrap() - self.start_angle)
     }
 
-    /// gets the offset and scale for the x and z axis
+    /// gets the offset and scale for the x and z axis.
+    /// 
+    /// spin the sensor slowly around for at least 1 loop.
+    /// 
+    /// as long as the sensor can record both the highest and the lowest value, it should work.
     pub fn get_offsets(&mut self, seconds: f32) -> Result<(), Box<dyn Error>> {
         println!("start rotating the sensor.");
         println!("make sure that you rotate it at least 1 time");
