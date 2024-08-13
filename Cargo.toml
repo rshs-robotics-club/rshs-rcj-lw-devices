@@ -6,6 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rpi_build_hat_serial = { git = "https://github.com/rshs-robotics-club/rpi_build_hat_serial.git", branch = "master" }
-rppal = "0.17.1"
+rppal = { version = "0.18.0", features = ["hal"] }
+rpi_build_hat_serial = { git = "https://github.com/rshs-robotics-club/rpi_build_hat_serial.git", rev = "a10f991" }
 hc-sr04 = "0.1.1"
+nalgebra = "0.32.4"
+libm = "0.2.8"
+lsm303dlhc = "0.2.0"
+mcp3008 = "1.0.0"
