@@ -1,12 +1,13 @@
-use rppal::i2c::{self, *};
+use std::error::Error;
 
+use rppal::i2c::I2c;
 pub struct Irseeker {
     ir: I2c,
 }
 impl Irseeker {
     /// creates a new Irseeker object.
-    pub async fn new() -> Result<Self> {
-        let mut ir_i2c = i2c::I2c::new()?;
+    pub async fn new() -> Result<Self, Box<dyn Error>> {
+        let mut ir_i2c = I2c::new()?;
         let _ = ir_i2c.set_slave_address(0x8);
         Ok(Self { ir: ir_i2c })
     }
