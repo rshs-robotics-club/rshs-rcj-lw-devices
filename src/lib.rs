@@ -11,3 +11,4 @@ pub use mcp3008;
 pub use nalgebra;
 pub use rpi_build_hat_serial;
 pub use rppal;
+pub use pollster;
