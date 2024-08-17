@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 rppal = { version = "0.18.0", features = ["hal"] }
-rpi_build_hat_serial = { git = "https://github.com/rshs-robotics-club/rpi_build_hat_serial.git", rev = "6eae672" }
+rpi_build_hat_serial = { git = "https://github.com/rshs-robotics-club/rpi_build_hat_serial.git", rev = "3777fa4" }
 hc-sr04 = "0.1.1"
 nalgebra = "0.32.4"
 libm = "0.2.8"
