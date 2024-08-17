@@ -1,3 +1,4 @@
+// this is not supported anymore as we are now using the compass
 use crate::bits;
 use crate::device::{
     AccelRange, GyroRange, ACCEL_CONFIG, ACCEL_HPF, ACCEL_SENS, ACC_REGX_H, CLKSEL,

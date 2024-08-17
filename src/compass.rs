@@ -5,7 +5,7 @@ use lsm303dlhc::{self, Lsm303dlhc};
 use rppal::*;
 use std::{
     error::Error,
-    time::{Duration, Instant},
+    time::Instant,
 };
 
 /// instructions:
@@ -31,7 +31,7 @@ pub struct Compass {
 }
 
 impl Compass {
-    pub fn new(i2c: I2c, ready_pin: u8) -> Result<Self, Box<dyn Error>> {
+    pub async fn new(i2c: I2c, ready_pin: u8) -> Result<Self, Box<dyn Error>> {
         let lsm = Lsm303dlhc::new(i2c).unwrap();
         let pin = Gpio::new()
             .unwrap()
@@ -50,24 +50,24 @@ impl Compass {
     }
 
     /// checks if the sensor is ready using the Data-Ready (DRDY) pin
-    pub fn ready(&mut self) -> Result<bool, Box<dyn Error>> {
+    pub async fn ready(&mut self) -> Result<bool, Box<dyn Error>> {
         Ok(self.drdy_pin.is_high())
     }
 
     /// gets the raw yaw value (not recommended)
-    pub unsafe fn get_yaw_raw(&mut self) -> Result<f32, Box<dyn Error>> {
+    pub async unsafe fn get_yaw_raw(&mut self) -> Result<f32, Box<dyn Error>> {
         let v = self.lsm303dlhc.mag().unwrap();
         Ok(f32::atan2(v.z as f32, v.x as f32).to_degrees())
     }
 
     /// set the starting angle to be the angle facing right now
-    pub fn set_zero(&mut self) -> Result<(), Box<dyn Error>> {
-        self.start_angle = self.get_yaw_abs().unwrap();
+    pub async fn set_zero(&mut self) -> Result<(), Box<dyn Error>> {
+        self.start_angle = self.get_yaw_abs().await.unwrap();
         Ok(())
     }
 
     /// gets the true bearing of the sensor
-    pub fn get_yaw_abs(&mut self) -> Result<f32, Box<dyn Error>> {
+    pub async fn get_yaw_abs(&mut self) -> Result<f32, Box<dyn Error>> {
         let values = self.lsm303dlhc.mag().unwrap();
         let calibrated_z = (values.z as f32 - self.z_offset) / self.z_scale;
         let calibrated_x = (values.x as f32 - self.x_offset) / self.x_scale;
@@ -78,8 +78,8 @@ impl Compass {
     /// gets the angle relative to the start_angle
     ///
     /// you would need to use the ```set_zero()``` function before this.
-    pub fn get_yaw_rel(&mut self) -> Result<f32, Box<dyn Error>> {
-        let mut ans = (self.get_yaw_abs().unwrap() - self.start_angle);
+    pub async fn get_yaw_rel(&mut self) -> Result<f32, Box<dyn Error>> {
+        let mut ans = self.get_yaw_abs().await.unwrap() - self.start_angle;
         while ans < -180.0 {
             ans += 180.0;
         }
@@ -94,7 +94,7 @@ impl Compass {
     /// spin the sensor slowly around for at least 1 loop.
     ///
     /// as long as the sensor can record both the highest and the lowest value, it should work.
-    pub fn get_offsets(&mut self, seconds: f32) -> Result<(), Box<dyn Error>> {
+    pub async fn get_offsets(&mut self, seconds: f32) -> Result<(), Box<dyn Error>> {
         println!("start rotating the sensor.");
         println!("make sure that you rotate it at least 1 time");
         println!("do not tilt it to other directions");
@@ -105,16 +105,16 @@ impl Compass {
         let start_time = Instant::now();
         while start_time.elapsed().as_secs_f32() <= seconds {
             let values = self.lsm303dlhc.mag().unwrap();
-            if ((values.x as f32) > x_max) {
+            if (values.x as f32) > x_max {
                 x_max = values.x as f32
             };
-            if ((values.x as f32) < x_min) {
+            if (values.x as f32) < x_min {
                 x_min = values.x as f32
             };
-            if ((values.z as f32) > z_max) {
+            if (values.z as f32) > z_max {
                 z_max = values.z as f32
             };
-            if ((values.z as f32) < z_min) {
+            if (values.z as f32) < z_min {
                 z_min = values.z as f32
             };
         }

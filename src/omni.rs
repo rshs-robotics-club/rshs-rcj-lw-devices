@@ -10,17 +10,17 @@ pub struct Omni {
 }
 impl Omni {
     /// creates a new omni object
-    pub async fn new() -> Self {
+    pub async fn new() -> Result<Self, Box<dyn Error>> {
         let m_a = Motor::new(Port::A, 1.0, Direction::Anticlockwise).await;
         let m_b = Motor::new(Port::B, 1.0, Direction::Anticlockwise).await;
         let m_c = Motor::new(Port::C, 1.0, Direction::Anticlockwise).await;
         let m_d = Motor::new(Port::D, 1.0, Direction::Anticlockwise).await;
-        Self {
+        Ok(Self {
             motor_a: m_a,
             motor_b: m_b,
             motor_c: m_c,
             motor_d: m_d,
-        }
+        })
     }
 
     /// creates a new omni object with custom ports
