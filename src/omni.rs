@@ -64,11 +64,17 @@ impl Omni {
         self.motor_c.run_pid(c_speed).await;
         self.motor_d.run_pid(d_speed).await;
     }
+
+    /// give the string without the port
     pub async fn run_custom_pid(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32, pid_string: String) {
-        self.motor_a.run_pid_custom(a_speed, pid_string.clone()).await;
-        self.motor_b.run_pid_custom(b_speed, pid_string.clone()).await;
-        self.motor_c.run_pid_custom(c_speed, pid_string.clone()).await;
-        self.motor_d.run_pid_custom(d_speed, pid_string.clone()).await;
+        let a_pid = format!("pid {} {}", self.motor_a.port.clone() as u8, pid_string);
+        let b_pid = format!("pid {} {}", self.motor_b.port.clone() as u8, pid_string);
+        let c_pid = format!("pid {} {}", self.motor_c.port.clone() as u8, pid_string);
+        let d_pid = format!("pid {} {}", self.motor_d.port.clone() as u8, pid_string);
+        self.motor_a.run_pid_custom(a_speed, a_pid.clone()).await;
+        self.motor_b.run_pid_custom(b_speed, b_pid.clone()).await;
+        self.motor_c.run_pid_custom(c_speed, c_pid.clone()).await;
+        self.motor_d.run_pid_custom(d_speed, d_pid.clone()).await;
     }
     /// runs motors with raw values ()
     pub async fn run_raw_pwm(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32) {
