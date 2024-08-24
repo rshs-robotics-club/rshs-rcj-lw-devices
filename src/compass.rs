@@ -68,7 +68,7 @@ impl Compass {
 
     /// gets the true bearing of the sensor
     pub async fn get_yaw_abs(&mut self) -> Result<f32, Box<dyn Error>> {
-        let values = self.lsm303dlhc.mag().unwrap();
+        let values = self.lsm303dlhc.mag()?;
         let calibrated_z = (values.z as f32 - self.z_offset) / self.z_scale;
         let calibrated_x = (values.x as f32 - self.x_offset) / self.x_scale;
         let abs_angle = f32::atan2(calibrated_z, calibrated_x).to_degrees();
