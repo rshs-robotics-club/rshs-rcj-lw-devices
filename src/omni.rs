@@ -64,7 +64,12 @@ impl Omni {
         self.motor_c.run_pid(c_speed).await;
         self.motor_d.run_pid(d_speed).await;
     }
-
+    pub async fn run_custom_pid(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32, pid_string: String) {
+        self.motor_a.run_pid_custom(a_speed, pid_string.clone()).await;
+        self.motor_b.run_pid_custom(b_speed, pid_string.clone()).await;
+        self.motor_c.run_pid_custom(c_speed, pid_string.clone()).await;
+        self.motor_d.run_pid_custom(d_speed, pid_string.clone()).await;
+    }
     /// runs motors with raw values ()
     pub async fn run_raw_pwm(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32) {
         self.motor_a.run_pwm(a_speed).await;
@@ -202,6 +207,30 @@ impl Omni {
         self.run_raw(a, b, c, d).await;
         Ok(())
     }
+    pub async fn move_xy_custom_pid(
+        &mut self,
+        robot_speed: f32,
+        facing: f32,
+        x_1: f32,
+        y_1: f32,
+        rotation_factor: f32,
+        pid_string: String,
+    ) -> Result<(), Box<dyn Error>> {
+        let rotated_point = Self::find_rotated_point(x_1, y_1, facing).unwrap();
+        let (x, y) = (rotated_point[0], rotated_point[1]);
+        let mut a: f32 = x + y;
+        let mut b: f32 = x - y;
+        let mut c: f32 = -x - y;
+        let mut d: f32 = -x + y;
+        a -= rotation_factor;
+        b -= rotation_factor;
+        c -= rotation_factor;
+        d -= rotation_factor;
+        self.scale(robot_speed, &mut a, &mut b, &mut c, &mut d)
+            .await;
+        self.run_custom_pid(a, b, c, d, pid_string).await;
+        Ok(())
+    }
     /// moves the robot with angle starting from the vector [0, 1]
     pub async fn move_angle(
         &mut self,
@@ -261,7 +290,7 @@ impl Omni {
     }
 
     /// scale 4 motor values
-    async fn scale(
+    pub async fn scale(
         &mut self,
         aim: f32,
         a_speed: &mut f32,
