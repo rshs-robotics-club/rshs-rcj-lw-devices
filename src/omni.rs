@@ -219,7 +219,8 @@ impl Omni {
         facing: f32,
         x_1: f32,
         y_1: f32,
-        rotation_factor: f32,
+        face_angle: f32,
+        rotation_multiplier: f32,
         pid_string: String,
     ) -> Result<(), Box<dyn Error>> {
         let rotated_point = Self::find_rotated_point(x_1, y_1, facing).unwrap();
@@ -228,6 +229,7 @@ impl Omni {
         let mut b: f32 = x - y;
         let mut c: f32 = -x - y;
         let mut d: f32 = -x + y;
+        let rotation_factor = (facing + face_angle) * rotation_multiplier;
         a -= rotation_factor;
         b -= rotation_factor;
         c -= rotation_factor;
