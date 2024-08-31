@@ -13,3 +13,6 @@ pub use rpi_build_hat_serial;
 pub use rppal;
 pub use pollster;
 pub use hc_sr04;
+pub use xca9548a;
+pub use bno055;
+pub use bno080;
