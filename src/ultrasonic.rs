@@ -14,7 +14,7 @@ const _REG_WHOAMI: u8 = 0x01;
 fn _set_bit(x: u8, n: u8) -> u8 {
     x | (1 << n)
 }
-struct Ultrasonic {
+pub struct Ultrasonic {
     i2c: I2c,
     address: u16,
     temperature: f32,
