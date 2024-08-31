@@ -1,6 +1,6 @@
 pub mod bbr_irseeker;
 pub mod omni;
-
+pub mod color;
 pub use nalgebra;
 pub use rpi_build_hat_serial;
 pub use rppal;
