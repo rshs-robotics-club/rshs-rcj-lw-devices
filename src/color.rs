@@ -7,7 +7,11 @@ const _REG_RED: u8 = 0x08;
 const _REG_GREEN: u8 = 0x09;
 const _REG_BLUE: u8 = 0x0A;
 const _REG_WHITE: u8 = 0x0B;
-
+const _DEFAULT_SETTINGS: u8 = b'\x00';  // initialise gain:1x, integration 40ms, Green Sensitivity 0.25168, Max. Detectable Lux 16496
+                                        // No Trig, Auto mode, enabled.
+const _SHUTDOWN: u8 = b'\x01';          // Disable colour sensor
+const _INTEGRATION_TIME: u8 = 40;       // ms
+const _G_SENSITIVITY: f32 = 0.25168;     // lux/step
 pub struct Color{
     i2c: I2c,
 }
@@ -15,6 +19,8 @@ impl Color {
     pub fn new(address: u16) -> Result<Self, Box<dyn Error>> {
         let mut bus = I2c::new()?;
         let _ = bus.set_slave_address(address);
+        let _ = bus.write(&[_CONF, _SHUTDOWN]);
+        let _ = bus.write(&[_CONF, _DEFAULT_SETTINGS]);
         Ok(Self {i2c: bus})
     }
     pub fn read_rgb(&mut self) -> Result<[u16; 4], Box<dyn Error>>{
