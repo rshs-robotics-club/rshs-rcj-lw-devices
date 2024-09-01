@@ -20,9 +20,9 @@ pub struct Ultrasonic {
     millimeters_per_microsecond: f32,
     led: bool,
 }
-impl<I2c, E> Ultrasonic<I2c> {
+impl Ultrasonic {
     pub fn new(
-        i2c: I2c,
+        mut i2c: I2c,
         address: u16,
         speed_of_sound: f32,
         led: bool,
