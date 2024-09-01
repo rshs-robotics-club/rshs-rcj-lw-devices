@@ -17,23 +17,19 @@ fn _set_bit(x: u8, n: u8) -> u8 {
 pub struct Ultrasonic {
     i2c: I2c,
     address: u16,
-    temperature: f32,
     millimeters_per_microsecond: f32,
     led: bool,
 }
 impl Ultrasonic {
     pub fn new(
+        mut i2c: I2c,
         address: u16,
-        temperature: f32,
         speed_of_sound: f32,
         led: bool,
     ) -> Result<Self, Box<dyn Error>> {
-        let mut bus = I2c::new()?;
-        let _ = bus.set_slave_address(address);
         Ok(Self {
-            i2c: bus,
+            i2c: i2c,
             address: address,
-            temperature: temperature,
             millimeters_per_microsecond: speed_of_sound,
             led: led,
         })
