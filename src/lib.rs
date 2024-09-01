@@ -1,10 +1,11 @@
 pub mod bbr_irseeker;
 pub mod omni;
 pub mod color;
-pub use nalgebra;
-pub use rpi_build_hat_serial;
-pub use rppal;
-pub use pollster;
-pub use xca9548a;
+pub mod ultrasonic;
 pub use bno055;
 pub use bno080;
+pub use nalgebra;
+pub use pollster;
+pub use rpi_build_hat_serial;
+pub use rppal;
+pub use xca9548a;

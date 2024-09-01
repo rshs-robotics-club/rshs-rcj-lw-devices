@@ -66,7 +66,14 @@ impl Omni {
     }
 
     /// give the string without the port
-    pub async fn run_custom_pid(&mut self, a_speed: f32, b_speed: f32, c_speed: f32, d_speed: f32, pid_string: String) {
+    pub async fn run_custom_pid(
+        &mut self,
+        a_speed: f32,
+        b_speed: f32,
+        c_speed: f32,
+        d_speed: f32,
+        pid_string: String,
+    ) {
         let a_pid = format!("pid {} {}", self.motor_a.port.clone() as u8, pid_string);
         let b_pid = format!("pid {} {}", self.motor_b.port.clone() as u8, pid_string);
         let c_pid = format!("pid {} {}", self.motor_c.port.clone() as u8, pid_string);
