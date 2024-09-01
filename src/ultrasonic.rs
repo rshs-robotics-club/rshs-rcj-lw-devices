@@ -1,4 +1,4 @@
-use embedded_hal::i2c::I2c;
+use rppal::i2c::I2c;
 use std::error::Error;
 const _BASE_ADDRESS: u8 = 0x35;
 const _DEVICE_ID: u16 = 578;
@@ -23,7 +23,7 @@ pub struct Ultrasonic {
 impl Ultrasonic {
     pub fn new(
         mut i2c: I2c,
-        address: u8,
+        address: u16,
         speed_of_sound: f32,
         led: bool,
     ) -> Result<Self, Box<dyn Error>> {
@@ -43,11 +43,11 @@ impl Ultrasonic {
     }
     pub fn _read_int(&mut self, register: u8) -> u16 {
         let mut data: [u8; 2] = [0; 2];
-        let _ = self.i2c.write_read(self.address, &[register], &mut data);
+        let _ = self.i2c.write_read(&[register], &mut data);
         u16::from_be_bytes(data)
     }
     pub fn _write_int(&mut self, register: u8, integer: u8) {
-        let _ = self.i2c.write(self.address, &[register, integer.to_be_bytes()[0]]);
+        let _ = self.i2c.write(&[register, integer.to_be_bytes()[0]]);
     }
     pub fn distance_mm(&mut self) -> Result<f32, Box<dyn Error>> {
         let trip_time = self._read_int(_REG_RAW) as f32;
