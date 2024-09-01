@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use rppal::i2c::I2c;
+use embedded_hal::i2c::I2c;
 const _ADDR: u16 = 0x10;
 const _CONF: u8 = b'\x00';
 const _REG_RED: u8 = 0x08;
@@ -14,23 +14,24 @@ const _INTEGRATION_TIME: u8 = 40;       // ms
 const _G_SENSITIVITY: f32 = 0.25168;     // lux/step
 pub struct Color{
     i2c: I2c,
+    addr: u8,
 }
 impl Color {
-    pub fn new(mut i2c: I2c) -> Result<Self, Box<dyn Error>> {
+    pub fn new(mut i2c: I2c, address: u8) -> Result<Self, Box<dyn Error>> {
         
-        let _ = i2c.write(&[_CONF, _SHUTDOWN]);
-        let _ = i2c.write(&[_CONF, _DEFAULT_SETTINGS]);
-        Ok(Self {i2c})
+        let _ = i2c.write(address, &[_CONF, _SHUTDOWN]);
+        let _ = i2c.write(address, &[_CONF, _DEFAULT_SETTINGS]);
+        Ok(Self {i2c, addr: address})
     }
     pub fn read_rgb(&mut self) -> Result<[u16; 4], Box<dyn Error>>{
         let mut value: [u8; 2] = [0, 0];
-        let _ = self.i2c.write_read(&[_REG_RED], &mut value);
+        let _ = self.i2c.write_read(self.addr, &[_REG_RED], &mut value);
         let u16red = u16::from_le_bytes(value);
-        let _ = self.i2c.write_read(&[_REG_GREEN], &mut value);
+        let _ = self.i2c.write_read(self.addr, &[_REG_GREEN], &mut value);
         let u16green = u16::from_le_bytes(value);
-        let _ = self.i2c.write_read(&[_REG_BLUE], &mut value);
+        let _ = self.i2c.write_read(self.addr, &[_REG_BLUE], &mut value);
         let u16blue = u16::from_le_bytes(value);
-        let _ = self.i2c.write_read(&[_REG_WHITE], &mut value);
+        let _ = self.i2c.write_read(self.addr, &[_REG_WHITE], &mut value);
         let data_white_int = u16::from_le_bytes(value);
         Ok([u16red, u16green, u16blue, data_white_int])
     }

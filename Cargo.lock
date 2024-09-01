@@ -582,6 +582,7 @@ version = "0.1.0"
 dependencies = [
  "bno055",
  "bno080",
+ "embedded-hal 1.0.0",
  "hc-sr04",
  "libm",
  "lsm303dlhc",
