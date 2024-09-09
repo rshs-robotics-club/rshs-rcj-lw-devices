@@ -16,12 +16,17 @@ pub struct Color{
     i2c: I2c,
 }
 impl Color {
-    pub fn new(mut i2c: I2c) -> Result<Self, Box<dyn Error>> {
-        
-        let _ = i2c.write(&[_CONF, _SHUTDOWN]);
-        let _ = i2c.write(&[_CONF, _DEFAULT_SETTINGS]);
+    pub fn new(mut i2c: I2c, address: u8) -> Result<Self, Box<dyn Error>> {
+        let _ = i2c.set_slave_address(address as u16);
         Ok(Self {i2c})
     }
+
+    pub fn init(&mut self) -> Result<(), Box<dyn Error>> {
+        let _ = self.i2c.write(&[_CONF, _SHUTDOWN]);
+        let _ = self.i2c.write(&[_CONF, _DEFAULT_SETTINGS]);
+        Ok(())
+    }
+
     pub fn read_rgb(&mut self) -> Result<[u16; 4], Box<dyn Error>>{
         let mut value: [u8; 2] = [0, 0];
         let _ = self.i2c.write_read(&[_REG_RED], &mut value);
