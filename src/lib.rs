@@ -9,3 +9,4 @@ pub use pollster;
 pub use rpi_build_hat_serial;
 pub use rppal;
 pub use xca9548a;
+pub use vl53l1x_uld;
