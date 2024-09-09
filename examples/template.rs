@@ -2,9 +2,6 @@
 // start your code at line 133.
 // you shouldn't need to change anything before that
 
-// put the line below in the cargo.toml file
-// rshs-rcj-lw-devices = { git = "https://github.com/rshs-robotics-club/rshs-rcj-lw-devices.git", rev = "2137a40" }
-
 use rshs_rcj_lw_devices::button::Button;
 use rshs_rcj_lw_devices::bno055::BNO055OperationMode;
 use rshs_rcj_lw_devices::omni::Omni;
