@@ -8,13 +8,9 @@ edition = "2021"
 [dependencies]
 rppal = { version = "0.18.0", features = ["hal"] }
 rpi_build_hat_serial = { git = "https://github.com/rshs-robotics-club/rpi_build_hat_serial.git", rev = "d4a182e" }
-hc-sr04 = "0.1.1"
 nalgebra = "0.32.4"
-libm = "0.2.8"
-lsm303dlhc = "0.2.0"
-mcp3008 = "1.0.0"
 pollster = "0.3.0"
 xca9548a = "1.0.0"
 bno055 = "0.4.0"
 bno080 = "0.1.3"
-embedded-hal = "1.0.0"
+vl53l1x-uld = "2.0.1"

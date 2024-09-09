@@ -18,20 +18,17 @@ pub struct Ultrasonic {
     i2c: I2c,
     address: u16,
     millimeters_per_microsecond: f32,
-    led: bool,
 }
 impl Ultrasonic {
     pub fn new(
-        mut i2c: I2c,
+        i2c: I2c,
         address: u16,
         speed_of_sound: f32,
-        led: bool,
     ) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
             i2c: i2c,
             address: address,
             millimeters_per_microsecond: speed_of_sound,
-            led: led,
         })
     }
     pub fn check_error(&mut self) -> Result<(), Box<dyn Error>> {
