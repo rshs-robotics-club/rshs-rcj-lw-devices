@@ -1,7 +1,10 @@
 // you can use this code to access all the sensors.
-// start your code at line 133.
+// start your code at line 136.
 // you shouldn't need to change anything before that
 
+use std::time::Instant;
+
+use bbr_irseeker::Irseeker;
 use rshs_rcj_lw_devices::button::Button;
 use rshs_rcj_lw_devices::bno055::BNO055OperationMode;
 use rshs_rcj_lw_devices::omni::Omni;
@@ -34,7 +37,7 @@ fn main() {let _ = block_on(async move {
     let mut omni = Omni::new().await.unwrap();
     let mut colors = Color::new(i2c_color, 0x10).unwrap();
     let mut button = Button::new(i2c_button, 0x0c).unwrap();
-    
+    let mut irseeker = Irseeker::new().await.unwrap();
     let mut facing = 0.0;
 
     let mut dist_left = 0;
@@ -46,7 +49,8 @@ fn main() {let _ = block_on(async move {
     let mut color_right: [u16; 4];
     let mut color_back: [u16; 4];
 
-
+    let mut ball_direction = 0;
+    let mut ball_strength = 0;
     // set up gyro
     let _ = imu.init(&mut delay).expect("An error occurred while building the IMU");
     let _ = imu.set_mode(BNO055OperationMode::NDOF, &mut delay).expect("An error occurred while setting the IMU mode");
@@ -82,8 +86,10 @@ fn main() {let _ = block_on(async move {
     let _ = multiplexer.select_channels(COLOR_BACK);
     let _ = colors.init();
 
-
     loop { // actual loop
+        // read irseeker
+        ball_direction = irseeker.get_direction().await;
+        ball_strength = irseeker.get_strength().await;
 
         // read color sensors
         let _ = multiplexer.select_channels(COLOR_LEFT);
@@ -127,11 +133,8 @@ fn main() {let _ = block_on(async move {
         // 2. color_left, color_front, color_right and color_back are the rgb and white values that each color sensor picks up.
         //      the 4th value should be all you need to do line sensing
         // 3. facing is the angle that the robot faces.
-
+        
+        
 
     }
-    
-
-    
-    
 });}
