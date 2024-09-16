@@ -1,7 +1,7 @@
 // this code is the same as the other template but uses the gy-bno055 (an alternative to the adafruit breakout board)
 
 // you can use this code to access all the sensors.
-// start your code at line 141.
+// start your code at line 142.
 // you shouldn't need to change anything before that
 
 use std::time::Instant;
@@ -16,7 +16,7 @@ use rshs_rcj_lw_devices::color::Color;
 use rshs_rcj_lw_devices::vl53l1x_uld::*;
 use rshs_rcj_lw_devices::pollster::block_on;
 fn main() {let _ = block_on(async move {
-    let mut i2c_color = rshs_rcj_lw_devices::rppal::i2c::I2c::new().unwrap();
+    let mut i2c_color = I2c::new().unwrap();
     let mut i2c_gyro = I2c::new().unwrap();
     let mut i2c_mult = I2c::new().unwrap();
     let mut i2c_laser = I2c::new().unwrap();
@@ -113,6 +113,7 @@ fn main() {let _ = block_on(async move {
         match imu.euler_angles() {
             Ok(val) => {
                 facing = val.c;
+                if (facing >= 180.0) {facing = -(360.0-facing);} // changes the angle value from 0-360 to -180-180
             }
             Err(e) => {
                 eprintln!("{:?}", e);
