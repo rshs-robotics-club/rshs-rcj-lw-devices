@@ -20,6 +20,13 @@ fn main() {let _ = block_on(async move {
     let mut i2c_laser = I2c::new().unwrap();
     let mut i2c_button = I2c::new().unwrap();
     let mut delay = Delay {};
+
+
+    // =================================
+    const ALTERNATIVE_BNO: bool = false;
+    // =================================
+
+
     const COLOR_LEFT: u8 = 0b0100_0000;
     const COLOR_FRONT: u8 = 0b0000_0001;
     const COLOR_RIGHT: u8 = 0b0000_0100;
@@ -27,17 +34,18 @@ fn main() {let _ = block_on(async move {
     const LASER_LEFT: u8 = 0b0010_0000;
     const LASER_RIGHT: u8 = 0b0000_0010;
     const LASER_BACK: u8 = 0b0000_1000;
-
+    const BNO055: u8 = 0b1000_0000;
     const ERR : &str = "Failed to communicate";
 
     let mut multiplexer = xca9548a::Xca9548a::new(i2c_mult, xca9548a::SlaveAddr::Default);
     // let mut colors = rshs_rcj_lw_devices::color::Color::new(i2c_color).unwrap();
     let mut lasers = vl53l1x_uld::VL53L1X::new(i2c_laser, vl53l1x_uld::DEFAULT_ADDRESS);
-    let mut imu = bno055::Bno055::new(i2c_gyro).with_alternative_address();
     let mut omni = Omni::new().await.unwrap();
     let mut colors = Color::new(i2c_color, 0x10).unwrap();
     let mut button = Button::new(i2c_button, 0x0c).unwrap();
     let mut irseeker = Irseeker::new().await.unwrap();
+
+    let mut imu = if !ALTERNATIVE_BNO {bno055::Bno055::new(i2c_gyro).with_alternative_address()} else {bno055::Bno055::new(i2c_gyro)};
     let mut facing = 0.0;
 
     let mut dist_left = 0;
@@ -56,6 +64,9 @@ fn main() {let _ = block_on(async move {
     let mut last_pressed = Instant::now();
 
     // set up gyro
+    if ALTERNATIVE_BNO{
+        let _ = multiplexer.select_channels(BNO055);
+    }
     let _ = imu.init(&mut delay).expect("An error occurred while building the IMU");
     let _ = imu.set_mode(BNO055OperationMode::NDOF, &mut delay).expect("An error occurred while setting the IMU mode");
     let calib = imu.calibration_profile(&mut delay).unwrap();
@@ -109,6 +120,9 @@ fn main() {let _ = block_on(async move {
         color_back = colors.read_rgb().unwrap();
 
         // read gyro
+        if ALTERNATIVE_BNO{
+            let _ = multiplexer.select_channels(BNO055);
+        }
         match imu.euler_angles() {
             Ok(val) => {
                 facing = val.c;
