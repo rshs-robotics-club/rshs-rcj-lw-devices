@@ -51,6 +51,10 @@ fn main() {let _ = block_on(async move {
 
     let mut ball_direction = 0;
     let mut ball_strength = 0;
+
+    let mut start = false;
+    let mut last_pressed = Instant::now();
+
     // set up gyro
     let _ = imu.init(&mut delay).expect("An error occurred while building the IMU");
     let _ = imu.set_mode(BNO055OperationMode::NDOF, &mut delay).expect("An error occurred while setting the IMU mode");
@@ -127,6 +131,15 @@ fn main() {let _ = block_on(async move {
         let _ = multiplexer.select_channels(LASER_BACK);
         // Retrieve measured distance.
         dist_back = lasers.get_distance().expect(ERR);
+
+        if (button.is_pressed().unwrap() && !start && last_pressed.elapsed().as_millis() >= 200) {
+            start = true;
+            last_pressed = Instant::now();
+        }
+        else if (button.is_pressed().unwrap() && start && last_pressed.elapsed().as_millis() >= 200) {
+            start = false;
+            last_pressed = Instant::now();
+        }
         // ===============================================================================
         // ===========================||actual code here||================================
         // ===============================================================================
