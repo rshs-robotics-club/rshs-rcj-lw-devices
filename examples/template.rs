@@ -21,7 +21,7 @@ fn main() {let _ = block_on(async move {
     let mut i2c_button = I2c::new().unwrap();
     let mut delay = Delay {};
 
-
+    // change this if the other bno055 sensor is used.
     // =================================
     const ALTERNATIVE_BNO: bool = false;
     // =================================
@@ -46,7 +46,8 @@ fn main() {let _ = block_on(async move {
     let mut irseeker = Irseeker::new().await.unwrap();
 
     let mut imu = if !ALTERNATIVE_BNO {bno055::Bno055::new(i2c_gyro).with_alternative_address()} else {bno055::Bno055::new(i2c_gyro)};
-    let mut facing = 0.0;
+    let mut abs_facing = 0.0;
+    let mut offset_angle = 0.0;
 
     let mut dist_left = 0;
     let mut dist_right = 0;
@@ -125,13 +126,14 @@ fn main() {let _ = block_on(async move {
         }
         match imu.euler_angles() {
             Ok(val) => {
-                facing = val.c;
-                if (facing >= 180.0) {facing = -(360.0-facing);} // changes the angle value from 0-360 to -180-180
+                abs_facing = val.c;
+                if (abs_facing >= 180.0) {abs_facing = -(360.0-abs_facing);} // changes the angle value from 0-360 to -180-180
             }
             Err(e) => {
                 eprintln!("{:?}", e);
             }
         }
+        let facing = abs_facing - offset_angle;
 
         // read laser sensors
         let _ = multiplexer.select_channels(LASER_LEFT);
@@ -148,18 +150,20 @@ fn main() {let _ = block_on(async move {
 
         if (button.is_pressed().unwrap() && !start && last_pressed.elapsed().as_millis() >= 200) {
             start = true;
+            offset_angle = abs_facing;
             last_pressed = Instant::now();
         }
         else if (button.is_pressed().unwrap() && start && last_pressed.elapsed().as_millis() >= 200) {
             start = false;
             last_pressed = Instant::now();
         }
+        let facing = abs_facing - offset_angle;
         // ===============================================================================
         // ===========================||actual code here||================================
         // ===============================================================================
         // 1. dist_left, dist_right and dist_back are the distance that each laser sensor recieves
         // 2. color_left, color_front, color_right and color_back are the rgb and white values that each color sensor picks up.
-        //      the 4th value should be all you need to do line sensing
+        //    the 4th value should be all you need to do line sensing
         // 3. facing is the angle that the robot faces.
         
         
