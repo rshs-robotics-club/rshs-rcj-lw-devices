@@ -3,8 +3,9 @@
 // you shouldn't need to change anything before that
 
 use std::time::Instant;
-
+use std::error::Error;
 use bbr_irseeker::Irseeker;
+use bno055::Bno055;
 use rshs_rcj_lw_devices::button::Button;
 use rshs_rcj_lw_devices::bno055::BNO055OperationMode;
 use rshs_rcj_lw_devices::omni::Omni;
@@ -13,6 +14,23 @@ use rshs_rcj_lw_devices::*;
 use rshs_rcj_lw_devices::color::Color;
 use rshs_rcj_lw_devices::vl53l1x_uld::*;
 use rshs_rcj_lw_devices::pollster::block_on;
+fn detect_bno055(i2c: &mut I2c) -> Result<u16, Box<dyn Error>> {
+    let addresses = [0x28, 0x29];
+
+    for &addr in &addresses {
+        i2c.set_slave_address(addr)?;
+
+        // Try reading the CHIP_ID register
+        let mut buf = [0u8; 1];
+        if i2c.block_read(0x00, &mut buf).is_ok() {
+            if buf[0] == 0xA0 {
+                return Ok(addr);
+            }
+        }
+    }
+
+    Err("BNO055 not detected on any known address".into())
+}
 fn main() {let _ = block_on(async move {
     let mut i2c_color = I2c::new().unwrap();
     let mut i2c_gyro = I2c::new().unwrap();
@@ -20,12 +38,6 @@ fn main() {let _ = block_on(async move {
     let mut i2c_laser = I2c::new().unwrap();
     let mut i2c_button = I2c::new().unwrap();
     let mut delay = Delay {};
-
-    // change this if the other bno055 sensor is used.
-    // =================================
-    const ALTERNATIVE_BNO: bool = false;
-    // =================================
-
 
     const COLOR_LEFT: u8 = 0b0100_0000;
     const COLOR_FRONT: u8 = 0b0000_0001;
@@ -37,6 +49,9 @@ fn main() {let _ = block_on(async move {
     const BNO055: u8 = 0b1000_0000;
     const ERR : &str = "Failed to communicate";
 
+    let mut bno_addr: u8 = 0x29;
+    
+    
     let mut multiplexer = xca9548a::Xca9548a::new(i2c_mult, xca9548a::SlaveAddr::Default);
     // let mut colors = rshs_rcj_lw_devices::color::Color::new(i2c_color).unwrap();
     let mut lasers = vl53l1x_uld::VL53L1X::new(i2c_laser, vl53l1x_uld::DEFAULT_ADDRESS);
@@ -45,7 +60,14 @@ fn main() {let _ = block_on(async move {
     let mut button = Button::new(i2c_button, 0x0c).unwrap();
     let mut irseeker = Irseeker::new().await.unwrap();
 
-    let mut imu = if !ALTERNATIVE_BNO {bno055::Bno055::new(i2c_gyro).with_alternative_address()} else {bno055::Bno055::new(i2c_gyro)};
+    let _ = multiplexer.select_channels(BNO055);
+    match detect_bno055(&mut i2c_gyro) {
+        Ok(addr) => bno_addr = addr as u8,
+        Err(e) => println!("Error: {}", e),
+    }
+    let mut imu = if (bno_addr == 0x29) {Bno055::new(i2c_gyro)} else {Bno055::new(i2c_gyro).with_alternative_address()};
+
+
     let mut abs_facing = 0.0;
     let mut offset_angle = 0.0;
 
@@ -65,9 +87,7 @@ fn main() {let _ = block_on(async move {
     let mut last_pressed = Instant::now();
 
     // set up gyro
-    if ALTERNATIVE_BNO{
-        let _ = multiplexer.select_channels(BNO055);
-    }
+    let _ = multiplexer.select_channels(BNO055);
     let _ = imu.init(&mut delay).expect("An error occurred while building the IMU");
     let _ = imu.set_mode(BNO055OperationMode::NDOF, &mut delay).expect("An error occurred while setting the IMU mode");
     let calib = imu.calibration_profile(&mut delay).unwrap();
@@ -121,9 +141,7 @@ fn main() {let _ = block_on(async move {
         color_back = colors.read_rgb().unwrap();
 
         // read gyro
-        if ALTERNATIVE_BNO{
-            let _ = multiplexer.select_channels(BNO055);
-        }
+        let _ = multiplexer.select_channels(BNO055);
         match imu.euler_angles() {
             Ok(val) => {
                 abs_facing = val.c;
