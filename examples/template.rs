@@ -14,6 +14,7 @@ use rshs_rcj_lw_devices::pollster::block_on;
 use rshs_rcj_lw_devices::rppal::{hal::Delay, i2c::I2c};
 use rshs_rcj_lw_devices::vl53l1x_uld::*;
 use rshs_rcj_lw_devices::*;
+use ultrasonic::Ultrasonic;
 use std::error::Error;
 use std::time::Instant;
 fn detect_bno055(i2c: &mut I2c) -> Result<u16, Box<dyn Error>> {
@@ -40,7 +41,7 @@ fn main() {
         let mut i2c_mult = I2c::new().unwrap();
         let mut i2c_laser = I2c::new().unwrap();
         let mut i2c_button = I2c::new().unwrap();
-
+        let mut i2c_ultrasonic = I2c::new().unwrap();
         let mut delay = Delay {};
 
         const COLOR_LEFT: u8 = 0b0100_0000;
@@ -49,7 +50,7 @@ fn main() {
         const COLOR_BACK: u8 = 0b0001_0000;
         const LASER_LEFT: u8 = 0b0010_0000;
         const LASER_RIGHT: u8 = 0b0000_0010;
-        const LASER_BACK: u8 = 0b0000_1000;
+        const ULTRASONIC_BACK: u8 = 0b0000_1000;
         const BNO055: u8 = 0b1000_0000;
         const ERR: &str = "Failed to communicate";
 
@@ -62,7 +63,7 @@ fn main() {
         let mut colors = Color::new(i2c_color, 0x10).unwrap();
         let mut button = Button::new(i2c_button, 0x0c).unwrap();
         let mut irseeker = Irseeker::new().await.unwrap();
-
+        let mut ultrasonic = Ultrasonic::new(i2c_ultrasonic, 0x35, 0.3528).unwrap();
         let _ = multiplexer.select_channels(BNO055);
         match detect_bno055(&mut i2c_gyro) {
             Ok(addr) => bno_addr = addr as u8,
@@ -115,10 +116,8 @@ fn main() {
         let _ = lasers.set_distance_mode(DistanceMode::Long);
         let _ = lasers.start_ranging();
 
-        let _ = multiplexer.select_channels(LASER_BACK);
-        let _ = lasers.init(IOVoltage::Volt2_8).expect(ERR);
-        let _ = lasers.set_distance_mode(DistanceMode::Long);
-        let _ = lasers.start_ranging();
+        // ultrasonic does not need init
+        
 
         // set up color sensors
         let _ = multiplexer.select_channels(COLOR_LEFT);
@@ -200,9 +199,11 @@ fn main() {
             // Retrieve measured distance.
             dist_right = lasers.get_distance().expect(ERR);
 
-            let _ = multiplexer.select_channels(LASER_BACK);
+            let _ = multiplexer.select_channels(ULTRASONIC_BACK);
             // Retrieve measured distance.
-            dist_back = lasers.get_distance().expect(ERR);
+            if ultrasonic.new_sample_available().unwrap(){
+                dist_back = ultrasonic.distance_mm().unwrap() as u32;
+            }
 
             if (button.is_pressed().unwrap() && !start && last_pressed.elapsed().as_millis() >= 200)
             {
