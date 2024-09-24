@@ -21,10 +21,11 @@ pub struct Ultrasonic {
 }
 impl Ultrasonic {
     pub fn new(
-        i2c: I2c,
+        mut i2c: I2c,
         address: u16,
         speed_of_sound: f32,
     ) -> Result<Self, Box<dyn Error>> {
+        i2c.set_slave_address(address);
         Ok(Self {
             i2c: i2c,
             address: address,
