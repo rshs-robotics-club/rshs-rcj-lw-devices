@@ -499,11 +499,13 @@ version = "0.1.0"
 dependencies = [
  "bno055",
  "bno080",
+ "cfg-if",
+ "embedded-hal 0.2.7",
  "nalgebra",
  "pollster",
  "rpi_build_hat_serial",
  "rppal 0.18.0",
- "vl53l1x-uld",
+ "vl53l1-reg",
  "xca9548a",
 ]
 
@@ -620,17 +622,6 @@ checksum = "25e4c76e861c783d8ef11c633568443f44cbfdbe7723ab3bd1be69a73ea4a9b9"
 dependencies = [
  "bitfield",
  "embedded-hal 0.2.7",
-]
-
-[[package]]
-name = "vl53l1x-uld"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a6c5dd7a38f7e9cc03173f74002b3ea23b7482e00b9a52e863030fd8316c8b1"
-dependencies = [
- "cfg-if",
- "embedded-hal 0.2.7",
- "vl53l1-reg",
 ]
 
 [[package]]
