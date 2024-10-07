@@ -3,9 +3,9 @@ use std::{error::Error, thread::sleep, time::Duration};
 use rppal::i2c::I2c;
 
 pub struct Pose2d {
-    x: f32,
-    y: f32,
-    h: f32,
+    pub x: f32,
+    pub y: f32,
+    pub h: f32,
 }
 impl Pose2d {
     pub fn new(x: f32, y: f32, h: f32) -> Self {
@@ -142,23 +142,34 @@ pub struct OTOS {
     rad_to_unit: f32,
 }
 impl OTOS {
+
+    /// makes a new otos object
+    /// the default address is 0x17
     pub fn new(address: u16, mut i2c: I2c) -> Self {
         let _ = i2c.set_slave_address(address);
-        Self { i2c: i2c, linear_unit: kLinearUnitMeters, angular_unit: kAngularUnitDegrees, meter_to_unit: kMeterToInch, rad_to_unit: kRadianToDegree }
+        Self { i2c: i2c, linear_unit: kLinearUnitMeters, angular_unit: kAngularUnitDegrees, meter_to_unit: kLinearUnitMeters, rad_to_unit: kRadianToDegree }
     }
+
+    /// checks if the device is connected
     pub fn is_connected(&mut self) -> bool{
         let mut buf = [0];
         let prodid = self.i2c.block_read(kRegProductId, &mut buf);
         buf[0] == kProductId
     }
+
+    /// initializes this device with default parameters
     pub fn begin(&mut self) -> Result<bool, Box<dyn Error>> {
         Ok(self.is_connected())
     }
+
+    /// gets the hardware and firmware version numbers from the OTOS
     pub fn get_version_info(&mut self) -> Result<u16, Box<dyn Error>> {
         let mut buf: [u8; 2] = [0; 2];
         let _ = self.i2c.block_read(kRegHwVersion, &mut buf);
         Ok(u16::from_be_bytes(buf))
     }
+
+    /// Performs a self-test on the OTOS
     pub fn self_test(&mut self) -> Result<bool, Box<dyn Error>> {
         let _ = self.i2c.write(&[kRegSelfTest, 0x01]);
         let mut reg_value = [0];
@@ -176,10 +187,11 @@ impl OTOS {
             Ok(false)
         }
     }
+
+    /// Calibrates the IMU on the OTOS, which removes the accelerometer and gyroscope offsets
     pub fn calibrate_imu(&mut self, num_samples: u8, wait_until_done: bool) -> Result<bool, Box<dyn Error>>{
         /*
-        Calibrates the IMU on the OTOS, which removes the accelerometer and
-        gyroscope offsets
+        
 
         :param numSamples: Number of samples to take for calibration. Each
         sample takes about 2.4ms, so fewer samples can be taken for faster
@@ -227,11 +239,15 @@ impl OTOS {
         }
         Ok(false)
     }
+
+    /// Gets the progress of the IMU calibration. Used for asynchronous calibration with calibrateImu()
     pub fn get_imu_calibration_process(&mut self) -> Result<u8, Box<dyn Error>> {
         let mut buf = [0];
         let _ = self.i2c.block_read(kRegImuCalib, &mut buf);
         Ok(buf[0])
     }
+
+    /// Gets the linear unit used by all methods using a pose
     pub fn set_linear_unit(&mut self, unit: u8) -> Result<(), Box<dyn Error>> {
         if unit == self.linear_unit {
             return Ok(());
@@ -245,6 +261,8 @@ impl OTOS {
         }
         Ok(())
     }
+
+    /// Sets the angular unit used by all methods using a pose
     pub fn set_angular_unit(&mut self, unit: u8) -> Result<(), Box<dyn Error>> {
         if unit == self.angular_unit {
             return Ok(());
@@ -258,12 +276,16 @@ impl OTOS {
         }
         Ok(())
     }
+
+    /// Gets the linear scalar used by the OTOS
     pub fn get_linear_scalar(&mut self) -> Result<f32, Box<dyn Error>>{
         let mut raw_scalar = [0];
         let _ = self.i2c.block_read(kRegScalarLinear, &mut raw_scalar);
         let scalar = if raw_scalar[0] > 127 {raw_scalar[0] as u16 - 256} else {raw_scalar[0] as u16};
         Ok(scalar as f32 * 0.001 + 1.0)
     }
+
+    /// Sets the linear scalar used by the OTOS. Can be used to compensate for scaling issues with the sensor measurements
     pub fn set_linear_scalar(&mut self, scalar: f32) -> Result<bool, Box<dyn Error>>{
         if scalar < kMinScalar || scalar > kMaxScalar {
             return Ok(false);
@@ -272,12 +294,16 @@ impl OTOS {
         let _ = self.i2c.block_write(kRegScalarLinear, &rawscalar.to_be_bytes());
         Ok(true)
     }
+
+    /// Gets the angular scalar used by the OTOS
     pub fn get_angular_scalar(&mut self) -> Result<f32, Box<dyn Error>> {
         let mut raw_scalar = [0];
         let _ = self.i2c.block_read(kRegScalarAngular, &mut raw_scalar);
         let scalar: u16 = if raw_scalar[0] > 127 {raw_scalar[0] as u16 - 256} else {raw_scalar[0] as u16};
         Ok(scalar as f32 * 0.001 + 1.0)
     }
+
+    /// Sets the angular scalar used by the OTOS. Can be used to compensate for scaling issues with the sensor measurements
     pub fn set_angular_scalar(&mut self, scalar: f32) -> Result<bool, Box<dyn Error>> {
         if scalar < kMinScalar || scalar > kMaxScalar {
             return Ok(false);
@@ -286,53 +312,87 @@ impl OTOS {
         let _ = self.i2c.block_write(kRegScalarAngular, &rawscalar.to_be_bytes());
         Ok(true)
     }
+
+    /// Resets the tracking algorithm, which resets the position to the origin, but can also be used to recover from some rare tracking errors
     pub fn reset_tracking(&mut self) -> Result<(), Box<dyn Error>> {
         let _ = self.i2c.block_write(kRegReset, &[0x01]);
         Ok(())
     }
+
+    /// Gets the signal processing configuration from the OTOS
     pub fn get_signal_process_config(&mut self) -> Result<u8, Box<dyn Error>> {
         let mut buf = [0];
         let _ = self.i2c.block_read(kRegSignalProcess, &mut buf);
         Ok(buf[0])
     }
+
+    /// Sets the signal processing configuration for the OTOS
     pub fn set_signal_process_config(&mut self, config: u8) -> Result<(), Box<dyn Error>> {
         let _ = self.i2c.block_write(kRegSignalProcess, &[config]);
         Ok(())
     }
+
+    /// Gets the status register from the OTOS, which includes warnings and errors reported by the sensor
     pub fn get_status(&mut self) -> Result<u8, Box<dyn Error>> {
         let mut buf = [0];
         let _ = self.i2c.block_read(kRegStatus, &mut buf);
         Ok(buf[0])
     }
+
+    /// Gets the offset of the OTOS
     pub fn get_offset(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegOffXL, kInt16ToMeter, kInt16ToRad))
     }
+
+    /// Gets the offset of the OTOS. This is useful if your sensor is
+    /// mounted off-center from a robot. Rather than returning the position of
+    /// the sensor, the OTOS will return the position of the robot
     pub fn set_offset(&mut self, pose: Pose2d) -> Result<(), Box<dyn Error>> {
         self._write_pose_regs(kRegOffXL, pose, kMeterToInt16, kRadToInt16);
         Ok(())
     }
+
+    /// Gets the position measured by the OTOS
     pub fn get_position(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegPosXL, kInt16ToMeter, kInt16ToRad))
     }
+
+    /// Sets the position measured by the OTOS. This is useful if your
+    /// robot does not start at the origin, or you have another source of
+    /// location information (eg. vision odometry); the OTOS will continue
+    /// tracking from this position
     pub fn set_position(&mut self, pose: Pose2d) -> Result<(), Box<dyn Error>> {
         let _ = self._write_pose_regs(kRegPosXL, pose, kMeterToInt16, kRadToInt16);
         Ok(())
     }
+
+    /// Gets the velocity measured by the OTOS
     pub fn get_velocity(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegPosXL, kInt16ToMps, kInt16ToRps))
     }
+
+    /// Gets the acceleration measured by the OTOS
     pub fn get_acceleration(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegAccXL, kInt16ToMpss, kInt16ToRpss))
     }
+
+    /// Gets the standard deviation of the measured position
     pub fn get_position_stddev(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegPosStdXL, kInt16ToMeter, kInt16ToRad))
     }
+
+    /// Gets the standard deviation of the measured velocity
     pub fn get_velocity_stddev(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegVelStdXL, kInt16ToMps, kInt16ToRps))
     }
+
+    /// Gets the standard deviation of the measured acceleration
     pub fn get_acceleration_stddev(&mut self) -> Result<Pose2d, Box<dyn Error>> {
         Ok(self._read_pose_regs(kRegAccStdXL, kInt16ToMpss, kInt16ToRpss))
     }
+
+    /// Gets the position, velocity, and acceleration measured by the
+    /// OTOS in a single burst read
     pub fn get_pos_vel_acc(&mut self) -> Result<[Pose2d; 3], Box<dyn Error>> {
         let mut raw_data = [0; 18];
         let _ = self.i2c.block_read(kRegPosXL, &mut raw_data);
@@ -341,6 +401,9 @@ impl OTOS {
         let acc = self._regs_to_pose(&raw_data[12..18], kInt16ToMpss, kInt16ToRpss);
         Ok([pos, vel, acc])
     }
+
+    /// Gets the standard deviation of the measured position, velocity,
+    /// and acceleration in a single burst read
     pub fn get_pos_vel_acc_stddev(&mut self) -> Result<[Pose2d; 3], Box<dyn Error>> {
         let mut raw_data = [0;18];
         let _ = self.i2c.block_read(kRegPosStdXL, &mut raw_data);
@@ -349,6 +412,9 @@ impl OTOS {
         let acc = self._regs_to_pose(&raw_data[12..18], kInt16ToMpss, kInt16ToRpss);
         Ok([pos, vel, acc])
     }
+
+    /// Gets the position, velocity, acceleration, and standard deviation
+    /// of each in a single burst read
     pub fn get_pos_vel_acc_and_stddev(&mut self) -> Result<[Pose2d; 6], Box<dyn Error>> {
         let mut raw_data = [0;36];
         let _ = self.i2c.block_read(kRegPosStdXL, &mut raw_data);
@@ -360,27 +426,35 @@ impl OTOS {
         let acc_std_dev = self._regs_to_pose(&raw_data[30..36], kInt16ToMpss, kInt16ToRpss);
         Ok([pos, vel, acc, pos_std_dev, vel_std_dev, acc_std_dev])
     }
+
+    /// Function to read raw pose registers and convert to specified units
     pub fn _read_pose_regs(&mut self, reg: u8, raw_to_xy: f32, raw_to_h: f32) -> Pose2d {
         let mut raw_data = [0; 6];
         let _ = self.i2c.block_read(reg, &mut raw_data);
         self._regs_to_pose(&raw_data, raw_to_xy, raw_to_h)
     }
+
+    /// Function to write raw pose registers and convert from specified units
     pub fn _write_pose_regs(&mut self, reg: u8, pose: Pose2d, xy_to_raw: f32, h_to_raw: f32) {
         let raw_data = self._pose_to_regs(pose, xy_to_raw, h_to_raw);
         let _ = self.i2c.block_write(reg, &raw_data);
     }
+
+    /// Function to convert raw pose registers to a pose structure
     pub fn _regs_to_pose(&mut self, raw_data: &[u8], raw_to_xy: f32, raw_to_h: f32) -> Pose2d {
         let raw_x = ((raw_data[1] as i32) << 8) | raw_data[0] as i32;
         let raw_y = ((raw_data[3] as i32) << 8) | raw_data[2] as i32;
         let raw_h = ((raw_data[5] as i32) << 8) | raw_data[4] as i32;
-        let x2: i32 = if raw_x > 32767 {raw_x - 65536} else {raw_x};
-        let y2: i32 = if raw_y > 32767 {raw_y - 65536} else {raw_y}; 
-        let h2: i32 = if raw_h > 32767 {raw_h - 65536} else {raw_h};
+        let x2 = if raw_x > 32767 {raw_x - 65536} else {raw_x};
+        let y2 = if raw_y > 32767 {raw_y - 65536} else {raw_y}; 
+        let h2 = if raw_h > 32767 {raw_h - 65536} else {raw_h};
         let x = x2 as f32 * raw_to_xy * self.meter_to_unit;
         let y = y2 as f32 * raw_to_xy * self.meter_to_unit;
         let h = h2 as f32 * raw_to_h * self.rad_to_unit;
         Pose2d {x, y, h}
     }
+
+    /// Function to convert a pose structure to raw pose registers
     pub fn _pose_to_regs(&mut self, pose: Pose2d, xy_to_raw: f32, h_to_raw: f32) -> [u8; 6] {
         let raw_x = (pose.x * xy_to_raw / self.meter_to_unit) as i16;
         let raw_y = (pose.y * xy_to_raw / self.meter_to_unit) as i16;
