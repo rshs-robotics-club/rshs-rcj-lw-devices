@@ -147,7 +147,7 @@ impl OTOS {
     /// the default address is 0x17
     pub fn new(address: u16, mut i2c: I2c) -> Self {
         let _ = i2c.set_slave_address(address);
-        Self { i2c: i2c, linear_unit: kLinearUnitMeters, angular_unit: kAngularUnitDegrees, meter_to_unit: kLinearUnitMeters, rad_to_unit: kRadianToDegree }
+        Self { i2c: i2c, linear_unit: kLinearUnitMeters, angular_unit: kAngularUnitDegrees, meter_to_unit: kMeterToInch, rad_to_unit: kRadianToDegree }
     }
 
     /// checks if the device is connected
