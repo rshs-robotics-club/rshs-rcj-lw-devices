@@ -3,6 +3,7 @@ pub mod omni;
 pub mod color;
 pub mod ultrasonic;
 pub mod button;
+pub mod otos;
 pub mod vl53l1x;
 pub use bno055;
 pub use bno080;
