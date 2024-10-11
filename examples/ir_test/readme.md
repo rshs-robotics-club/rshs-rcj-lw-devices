@@ -1,0 +1,1 @@
+* prints irseeker's direction and strength

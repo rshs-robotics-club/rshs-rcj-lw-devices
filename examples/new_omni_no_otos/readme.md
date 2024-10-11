@@ -1,0 +1,1 @@
+* same as ```new_omni``` but does not use otos
